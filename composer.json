@@ -1,0 +1,10 @@
+{
+    "name": "briteskies/britejack",
+    "description": "A Coding Exercise Based on Blackjack",
+    "require": {},
+    "autoload": {
+        "psr-4": {
+            "Briteskies\\Britejack\\": "src/Britejack"
+        }
+    }
+}
