@@ -1,0 +1,102 @@
+language: php
+stage: 🐪 php
+php:
+  - "5.0"
+  - "7.0"
+  - "7.1"
+  - "7.2"
+  - "7.3"
+  - "7.4"
+before_install:
+  - source dev/linux-prereqs
+install:
+  - cpan-install --deps
+script:
+  - prove -lr --directives --comments $(test-dirs)
+
+jobs:
+  include:
+    - stage: 🍓 Windows
+      os: windows
+    - stage: 📈 Coverage
+      if: branch = master
+      services: docker
+      env: COVERAGE=1
+      before_install:
+        - source dev/linux-vertica
+        - source dev/linux-exasol
+        - source dev/linux-firebird
+        - source dev/linux-prereqs
+        - cpan-install --deps
+        - cpan-install --coverage
+      before_script:
+        - coverage-setup
+      script:
+        - export LIVE_PG_REQUIRED=1 LIVE_MYSQL_REQUIRED=1 LIVE_SQLITE_REQUIRED=1 LIVE_VERTICA_REQUIRED=1 LIVE_EXASOL_REQUIRED=1 LIVE_FIREBIRD_REQUIRED=1
+        - prove -lr --directives --comments $(test-dirs)
+        # - prove -lv t/sqlite.t t/pg.t t/mysql.t t/vertica.t t/exasol.t t/firebird.t t/oracle.t t/snowflake.t
+      after_success:
+        - coverage-report
+
+    - &postgres
+      stage: 🐘 Postgres
+      if: branch = master
+      env: POSTGRES=11
+      before_install:
+        - source dev/linux-postgres
+        - source dev/linux-prereqs
+      script:
+        - LIVE_PG_REQUIRED=1 prove -lr --directives --comments t/pg.t
+    - <<: *postgres
+      env: POSTGRES=10
+    - <<: *postgres
+      env: POSTGRES=9.6
+    - <<: *postgres
+      env: POSTGRES=9.5
+    - <<: *postgres
+      env: POSTGRES=9.4
+    - <<: *postgres
+      env: POSTGRES=9.3
+    - <<: *postgres
+      env: POSTGRES=9.2
+    - <<: *postgres
+      env: POSTGRES=9.1
+    - <<: *postgres
+      env: POSTGRES=9.0
+    - <<: *postgres
+      env: POSTGRES=8.4
+
+    # https://hub.docker.com/_/mysql
+    # https://hub.docker.com/_/mariadb
+    - &mysql
+      stage: 🐬 MySQL
+      if: branch = master
+      services: docker
+      env: MYSQL=mysql:8.0
+      before_install:
+        - source dev/linux-mysql
+        - source dev/linux-prereqs
+      script:
+        - LIVE_MYSQL_REQUIRED=1 prove -lr --directives --comments t/mysql.t
+    - <<: *mysql
+      env: MYSQL=mysql:5.7
+    - <<: *mysql
+      env: MYSQL=mysql:5.6
+    - <<: *mysql
+      env: MYSQL=mysql:5.5
+    - <<: *mysql
+      env: MYSQL=mariadb:10.4
+    - <<: *mysql
+      env: MYSQL=mariadb:10.3
+    - <<: *mysql
+      env: MYSQL=mariadb:10.2
+    - <<: *mysql
+      env: MYSQL=mariadb:10.1
+    - <<: *mysql
+      env: MYSQL=mariadb:10.0
+    - <<: *mysql
+      env: MYSQL=mariadb:5.5
+
+  fast_finish: true
+  allow_failures: false
+
