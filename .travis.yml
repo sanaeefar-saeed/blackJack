@@ -1,67 +1,18 @@
 language: php
-stage: 🐪 php
+
 php:
-  - "5.0"
-  - "7.0"
-  - "7.1"
-  - "7.2"
-  - "7.3"
-  - "7.4"
+  - 5.3
+  - 5.4
+  - 5.5
+  - 5.6
+  - hhvm
 
-jobs:
-  include:
-    - stage: 🍓 Windows
-      os: windows
+before_script:
+  - travis_retry composer self-update
+  - travis_retry composer install --no-interaction --prefer-source --dev
 
-    - &postgres
-      stage: 🐘 Postgres
-      if: branch = master
-      env: POSTGRES=11
-    - <<: *postgres
-      env: POSTGRES=10
-    - <<: *postgres
-      env: POSTGRES=9.6
-    - <<: *postgres
-      env: POSTGRES=9.5
-    - <<: *postgres
-      env: POSTGRES=9.4
-    - <<: *postgres
-      env: POSTGRES=9.3
-    - <<: *postgres
-      env: POSTGRES=9.2
-    - <<: *postgres
-      env: POSTGRES=9.1
-    - <<: *postgres
-      env: POSTGRES=9.0
-    - <<: *postgres
-      env: POSTGRES=8.4
+script:
+  - vendor/bin/phpunit --coverage-clover=coverage.xml
 
-    # https://hub.docker.com/_/mysql
-    # https://hub.docker.com/_/mariadb
-    - &mysql
-      stage: 🐬 MySQL
-      if: branch = master
-      services: docker
-      env: MYSQL=mysql:8.0
-    - <<: *mysql
-      env: MYSQL=mysql:5.7
-    - <<: *mysql
-      env: MYSQL=mysql:5.6
-    - <<: *mysql
-      env: MYSQL=mysql:5.5
-    - <<: *mysql
-      env: MYSQL=mariadb:10.4
-    - <<: *mysql
-      env: MYSQL=mariadb:10.3
-    - <<: *mysql
-      env: MYSQL=mariadb:10.2
-    - <<: *mysql
-      env: MYSQL=mariadb:10.1
-    - <<: *mysql
-      env: MYSQL=mariadb:10.0
-    - <<: *mysql
-      env: MYSQL=mariadb:5.5
-
-  fast_finish: true
-  allow_failures: false
-
+after_success:
+  - bash <(curl -s https://codecov.io/bash)
